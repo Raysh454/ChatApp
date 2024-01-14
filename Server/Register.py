@@ -1,10 +1,9 @@
 import re
 
-from . import Database
-
 class Register:
-    def __init__(self, server, client, request):
+    def __init__(self, server, database, client, request):
         self.server = server
+        self.database = database
         self.request = request
         self.client = client
 
@@ -16,15 +15,34 @@ class Register:
         passwordPattern = re.compile(r'^(?=.*?[0-9])(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[^0-9A-Za-z]).{8,32}$')
 
         if not bool(usernamePattern.match(username)):
-            raise ValueError('Username can be between 6 and 16 characters and can only contain letters or numbers')
+            self.server.sendToClient({
+                'type': 'ERROR',
+                'msg': 'Username can be between 6 and 16 characters and can only contain letters or numbers',
+                }, self.client)
+            return False
         elif not bool(passwordPattern.match(password)):
-            raise ValueError('A strong password requires at least one uppercase letter, at least one lowercase letter, and at least one special character.')
+            self.server.sendToClient({
+                'type': 'ERROR',
+                'msg': 'A strong password requires at least one uppercase letter, at least one lowercase letter, and at least one special character.',
+                }, self.client)
+            return False
+
+        return True
 
 
     def handle(self):
-       self.validate()
-       
-       #Check wether user exists or not
-       #Return success or error json object to client
+        if not self.validate():
+            return
 
-
+        if self.database.isAnUser(self.request.username):
+            self.server.sendToClient({
+                'type': 'ERROR',
+                'msg': 'Username exists'
+                }, self.client)
+            return
+        
+        self.database.createUser(self.request.username, self.request.password)
+        self.server.sendToClient({
+            'type': 'SUCCESS',
+            'msg': 'User created'
+            }, self.client)

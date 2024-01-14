@@ -1,6 +1,7 @@
 class Messages:
-    def __init__(self, server, client, request):
+    def __init__(self, server, database, client, request):
         self.server = server
+        self.database = database
         self.client = client
         self.request = request
 

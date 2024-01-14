@@ -2,12 +2,14 @@ import socket
 import threading
 import json
 
+from . import Database
 from . import Register
 from . import Authenticate
-from . import Message
+from . import Messages
 
 class Server:
     def __init__(self, host, port):
+        self.database = Database.Database()
         self.host = host
         self.port = port
         self.clients = {}
@@ -36,11 +38,11 @@ class Server:
 
                 match request.get('type', ''):
                     case 'AUTHENTICATION':
-                        handler = Authenticate(self, client_sock, request)
+                        handler = Authenticate.Authenticate(self, self.database, client_sock, request)
                     case 'REGISTER':
-                        handler = Register(self, client_sock, request)
+                        handler = Register.Register(self, self.database, client_sock, request)
                     case 'MESSAGE':
-                        handler = Message(self, client_sock, request)
+                        handler = Messages.Messages(self, self.database, client_sock, request)
                     case _:
                         print(f'Unkown request type: {request.type}')
                         continue
@@ -53,3 +55,8 @@ class Server:
                 addr = client_sock.getpeername()
                 print(f'Connection from {addr} closed')
                 del self.clients[addr]
+
+
+    def sendToClient(self, json_obj, client):
+        json_string = json.dumps(json_obj)
+        client.send(json_string.encode('utf-8'))

@@ -27,7 +27,6 @@ class Database:
         # Insert the new user into the 'users' table using parameterized query
         self.cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
         self.connection.commit()
-        return True
 
     def isAnUser(self, username):
         # Check if the user already exists using parameterized query
