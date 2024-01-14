@@ -1,3 +1,5 @@
+from . import Server
+
 class Authenticate:
     def __init__(self, server, database, client, request):
         self.server = server
@@ -6,4 +8,28 @@ class Authenticate:
         self.client = client
 
     def handle(self):
-        #Handle user login, return session id
+        if 'username' not in self.request or 'password' not in self.request:
+            self.server.sendToClient({
+                'type': 'ERROR',
+                'msg': 'Missing username or password in the request',
+            }, self.client)
+            return
+        username = self.request['username']
+        password = self.request['password']
+        
+        if not self.database.isAnUser(username) or not self.database.loginIsValid(username, password):
+            self.server.sendToClient({
+                'type':'ERROR',
+                'msg' :'Invalid username or password',
+            }, self.client)
+            return
+        
+        # if it got to here it means Authentication was successful. Time to generate Sesh Id
+        sessionID = self.database.assignSession(username)
+
+        self.server.sendToClient({
+            'type': 'AUTHENTICATION_SUCCESS',
+            'msg': 'Authentication successful',
+            'session_id': sessionID,
+        }, self.client)
+        
