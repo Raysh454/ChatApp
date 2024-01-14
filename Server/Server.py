@@ -2,6 +2,10 @@ import socket
 import threading
 import json
 
+from . import Register
+from . import Authenticate
+from . import Message
+
 class Server:
     def __init__(self, host, port):
         self.host = host
@@ -32,14 +36,17 @@ class Server:
 
                 match request.get('type', ''):
                     case 'AUTHENTICATION':
-                        Authenticate(self, request)
+                        handler = Authenticate(self, client_sock, request)
                     case 'REGISTER':
-                        Register(self, request)
+                        handler = Register(self, client_sock, request)
                     case 'MESSAGE':
-                        Message(self, request)
+                        handler = Message(self, client_sock, request)
                     case _:
                         print(f'Unkown request type: {request.type}')
                         continue
+
+                handler.handle()
+
             except Exception as e:
                 print(f'Error: {e}')    
             finally:
