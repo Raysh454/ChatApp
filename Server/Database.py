@@ -34,13 +34,13 @@ class Database:
         user = self.cursor.fetchone()
         return user is not None
 
-    def loginIsValid(self, username, password):
+    def loginIsValid(self, username, password): #MAKE IT ONLY RETURN BOOLEAN
         # Check the database for the username/password combination
         self.cursor.execute('SELECT * FROM users WHERE username = ? AND password = ?', (username, password))
         user = self.cursor.fetchone()
         if user:
             # Generate a new session ID and update the user's record
-            return self.assignSession(user[1])
+            return self.assignSession(user[1]) 
         else:
             return None
 
