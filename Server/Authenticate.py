@@ -1,5 +1,3 @@
-from . import Server
-
 class Authenticate:
     def __init__(self, server, database, client, request):
         self.server = server
