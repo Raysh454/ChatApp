@@ -14,7 +14,14 @@ class Server:
         self.port = port
         self.clients = {}
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        
+        self.usernames = {}
+        """
+        {
+        'huz', (session_id, socket),
+        'saleem', (session_id, socket),
+        'sherry', (session_id, socket)
+        }
+        """
         self.sock.bind((self.host, self.port))
         self.sock.listen()
          
