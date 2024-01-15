@@ -1,5 +1,3 @@
-from . import Server
-
 class Messages:
     def __init__(self, server, database, client, request):
         self.server = server
@@ -16,13 +14,13 @@ class Messages:
         
         #Send message to target or broadcast
         if target == 'BROADCAST':
-            Server.Server.broadcastMessage(message)
+            self.server.broadcastMessage(message)
 
         elif target in self.server.clients:
             client_sock = self.server.clients[target]
-            Server.Server.sendToClient(message, client_sock)
+            self.server.sendToClient(message, client_sock)
         else:
-            Server.Server.sendToClient(self.server, {
+            self.server.sendToClient(self.server, {
                 'type': 'ERROR',
                 'msg': f'Invalid target: {target}',
             }, self.client)
