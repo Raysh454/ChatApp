@@ -14,7 +14,14 @@ class Server:
         self.port = port
         self.clients = {}
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        
+        self.usernames = {}
+        """
+        {
+        'huz', (session_id, socket),
+        'saleem', (session_id, socket),
+        'sherry', (session_id, socket)
+        }
+        """
         self.sock.bind((self.host, self.port))
         self.sock.listen()
          
@@ -56,6 +63,9 @@ class Server:
                 print(f'Connection from {addr} closed')
                 del self.clients[addr]
 
+
+    def broadcastMessage(): # broadcasts message in client???
+        pass
 
     def sendToClient(self, json_obj, client):
         json_string = json.dumps(json_obj)
