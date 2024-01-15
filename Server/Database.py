@@ -59,3 +59,5 @@ class Database:
         self.connection.commit()
         return session_id
 
+    def getSession(self, username):
+        pass #return session_id
