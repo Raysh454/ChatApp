@@ -25,11 +25,11 @@ class Authenticate:
             return
         
         # if it got to here it means Authentication was successful. Time to generate Sesh Id
-        sessionID = self.database.assignSession(username)
+        session_id = self.database.assignSession(username)
 
         self.server.sendToClient({
             'type': 'AUTHENTICATION_SUCCESS',
             'msg': 'Authentication successful',
-            'session_id': sessionID,
+            'session_id': session_id,
         }, self.client)
         

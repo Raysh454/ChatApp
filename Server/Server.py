@@ -57,6 +57,9 @@ class Server:
                 del self.clients[addr]
 
 
+    def broadcastMessage(): # broadcasts message in client???
+        pass
+
     def sendToClient(self, json_obj, client):
         json_string = json.dumps(json_obj)
         client.send(json_string.encode('utf-8'))
