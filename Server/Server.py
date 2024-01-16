@@ -11,15 +11,17 @@ class Server:
     def __init__(self, host, port):
         self.host = host
         self.port = port
-        self.clients = {}
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.clients = {}
         self.users = {}
+        self.lock = threading.Lock()
        
         try:
             self.sock.bind((self.host, self.port))
             self.sock.listen()
         except Exception as e:
-            print(f'Error in server: {e}')
+            print(f'Error Listening to port {port} : {e}')
+            return
          
         print(f'Server listeneing on {host}:{port}')
 
@@ -88,3 +90,12 @@ class Server:
             return True
         except socket.error:
             return False
+
+    def addUser(self, username, session_id, sock):
+        with self.lock:
+            self.users[username] = (session_id, sock)
+    
+    def deleteUser(self, username):
+        if username in self.users:
+            with self.lock:
+                del self.users[username]
