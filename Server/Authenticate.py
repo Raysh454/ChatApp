@@ -7,3 +7,4 @@ class Authenticate:
 
     def handle(self):
         #Handle user login, return session id
+        pass

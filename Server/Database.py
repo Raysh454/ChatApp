@@ -38,11 +38,7 @@ class Database:
         # Check the database for the username/password combination
         self.cursor.execute('SELECT * FROM users WHERE username = ? AND password = ?', (username, password))
         user = self.cursor.fetchone()
-        if user:
-            # Generate a new session ID and update the user's record
-            return self.assignSession(user[1])
-        else:
-            return None
+        return user is not None
 
     def deleteSession(self, sessionID):
         # Delete a session associated with a user using parameterized query

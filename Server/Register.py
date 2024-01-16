@@ -8,8 +8,8 @@ class Register:
         self.client = client
 
     def validate(self):
-        username = self.request.get('username')
-        password = self.request.get('password')
+        username = self.request.get('username', '')
+        password = self.request.get('password', '')
 
         usernamePattern = re.compile(r'^[0-9A-Za-z]{6,16}$')
         passwordPattern = re.compile(r'^(?=.*?[0-9])(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[^0-9A-Za-z]).{8,32}$')
@@ -33,15 +33,14 @@ class Register:
     def handle(self):
         if not self.validate():
             return
-
-        if self.database.isAnUser(self.request.username):
+        if self.database.isAnUser(self.request['username']):
             self.server.sendToClient({
                 'type': 'ERROR',
                 'msg': 'Username exists'
                 }, self.client)
             return
         
-        self.database.createUser(self.request.username, self.request.password)
+        self.database.createUser(self.request['username'], self.request['password'])
         self.server.sendToClient({
             'type': 'SUCCESS',
             'msg': 'User created'

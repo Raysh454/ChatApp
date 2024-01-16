@@ -10,5 +10,6 @@ class Messages:
         #Send message to target or broadcast
 
     def validate(self):
+        pass
         #Check if required fields are present in request
         #Check if session_id is valid
