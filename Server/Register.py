@@ -14,6 +14,14 @@ class Register:
         usernamePattern = re.compile(r'^[0-9A-Za-z]{6,16}$')
         passwordPattern = re.compile(r'^(?=.*?[0-9])(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[^0-9A-Za-z]).{8,32}$')
 
+        invalidUsernames = ['BROADCAST']
+        if username in invalidUsernames:
+            self.server.sendToClient({
+                'type': 'ERROR',
+                'msg': 'Invalid username.', # Error message shouldn't tell user it's a name we use for other things ig
+                }, self.client)
+            return False
+
         if not bool(usernamePattern.match(username)):
             self.server.sendToClient({
                 'type': 'ERROR',

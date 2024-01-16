@@ -34,7 +34,7 @@ class Database:
         user = self.cursor.fetchone()
         return user is not None
 
-    def loginIsValid(self, username, password):
+    def loginIsValid(self, username, password): #MAKE IT ONLY RETURN BOOLEAN
         # Check the database for the username/password combination
         self.cursor.execute('SELECT * FROM users WHERE username = ? AND password = ?', (username, password))
         user = self.cursor.fetchone()
@@ -55,3 +55,5 @@ class Database:
         self.connection.commit()
         return session_id
 
+    def getSession(self, username):
+        pass #return session_id

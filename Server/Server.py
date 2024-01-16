@@ -13,6 +13,7 @@ class Server:
         self.port = port
         self.clients = {}
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.usernames = {}
        
         try:
             self.sock.bind((self.host, self.port))
@@ -70,6 +71,9 @@ class Server:
                 client_sock.close()
                 del self.clients[addr[0]]
 
+
+    def broadcastMessage(self): # broadcasts message in client???
+        pass
 
     def sendToClient(self, json_obj, client):
         json_string = json.dumps(json_obj)
