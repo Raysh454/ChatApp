@@ -10,7 +10,7 @@ class Client:
         self.username = ''
         self.session_id = ''
         self.connected = False
-        self.receive_thread = threading.Thread(target=self.receive_messages, daemon=True)
+        self.receive_thread = threading.Thread(target=self.recieveMessages, daemon=True)
 
     def connect(self):
         try:
@@ -63,7 +63,7 @@ class Client:
             }
             self.sock.send(json.dumps(logout_obj).encode('utf-8'))
     
-    def receive_messages(self):
+    def recieveMessages(self):
         while self.connected:
             try:
                 data = self.sock.recv(1024).decode('utf-8')
@@ -75,6 +75,21 @@ class Client:
                 print(f"Error while recieving messages.\n{e}")
                 break
     
-    def handle_response(self, response): # !!!clearly unfinished!!!
-        print(response)
-        print()
+    def handle_response(self, response):    
+        # Temporary function, will change when gui is made.
+        # Probably will be put in the gui itself
+        if response['type'] == 'SUCCESS':
+            if 'session_id' in response:
+                self.session_id = response['session_id']
+            print(f'Success: {response["msg"]}')
+        elif response['type'] == 'ERROR':
+            print(f'Error: {response["msg"]}')
+        elif response['type'] == 'MESSAGE':
+            sender = response['sender']
+            message = response['message']
+            print(f'{sender}: {message}')
+        elif response['type'] == 'USER_LIST':
+            users = response['users']
+            print('Online Users:')
+            for user in users:
+                print(user)
