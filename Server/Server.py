@@ -6,6 +6,7 @@ from . import Database
 from . import Register
 from . import Authenticate
 from . import Messages
+from . import Logout
 
 class Server:
     def __init__(self, host, port):
@@ -72,12 +73,12 @@ class Server:
             addr = client_sock.getpeername()
             print(f'Connection from {addr} closed')
             client_sock.close()
-            database.connection.close()
             session_id = request.get('session_id', '')
             if session_id:
                 username = database.getUsername(session_id)
                 database.deleteSession(session_id)
                 self.deleteUser(username)
+            database.connection.close()
 
 
     def broadcastMessage(self, json_obj):
