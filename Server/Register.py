@@ -18,7 +18,7 @@ class Register:
         if username in invalidUsernames:
             self.server.sendToClient({
                 'type': 'ERROR',
-                'msg': 'Invalid username.',
+                'msg': 'Invalid username.', # Error message shouldn't tell user it's a name we use for other things ig
                 }, self.client)
             return False
 
