@@ -12,7 +12,6 @@ class Server:
         self.host = host
         self.port = port
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.clients = {}
         self.users = {}
         self.lock = threading.Lock()
        
@@ -27,51 +26,58 @@ class Server:
 
     def start(self):
         while True:
-            client_sock, addr = self.sock.accept()
-            self.clients[addr[0]] = client_sock
+            client_sock, _ = self.sock.accept()
             client_handler = threading.Thread(target=self.handle_client, args=(client_sock,))
             client_handler.start()
 
     def handle_client(self, client_sock):
-            try:
-                database = Database.Database()
-                while True:
-                    data = client_sock.recv(1024).decode('utf-8')
-                    if not data:
-                        break
+        database = Database.Database()
+        request = {}
+        try:
+            while True:
+                data = client_sock.recv(1024).decode('utf-8')
+                if not data:
+                    break
 
-                    try:
-                        request = json.loads(data)
-                    except json.JSONDecodeError as json_error:
-                        print(f'Error decoding JSON: {json_error}')
-                        print(f'Received data: {data}')
+                try:
+                    request = json.loads(data)
+                except json.JSONDecodeError as json_error:
+                    print(f'Error decoding JSON: {json_error}')
+                    print(f'Received data: {data}')
+                    continue
+
+                match request.get('type', ''):
+                    case 'AUTHENTICATE':
+                        handler = Authenticate.Authenticate(self, database, client_sock, request)
+                    case 'REGISTER':
+                        handler = Register.Register(self, database, client_sock, request)
+                    case 'MESSAGE':
+                        handler = Messages.Messages(self, database, client_sock, request)
+                    case 'LOGOUT':
+                        handler = Logout.Logout(self, database, client_sock, request)
+                    case _:
+                        print(f'Unkown request type: {request.type}')
                         continue
 
-                    match request.get('type', ''):
-                        case 'AUTHENTICATION':
-                            handler = Authenticate.Authenticate(self, database, client_sock, request)
-                        case 'REGISTER':
-                            handler = Register.Register(self, database, client_sock, request)
-                        case 'MESSAGE':
-                            handler = Messages.Messages(self, database, client_sock, request)
-                        case _:
-                            print(f'Unkown request type: {request.type}')
-                            continue
+                handler.handle()
 
-                    handler.handle()
-
-            except Exception as e:
-                print(f'Error: {e}')
-                if self.socketIsValid(client_sock):
-                    self.sendToClient({
-                        'type': "ERROR",
-                        'msg': "Something unexpected happened."
-                        }, client_sock)
-            finally:
-                addr = client_sock.getpeername()
-                print(f'Connection from {addr} closed')
-                client_sock.close()
-                del self.clients[addr[0]]
+        except Exception as e:
+            print(f'Error: {e}')
+            if self.socketIsValid(client_sock):
+                self.sendToClient({
+                    'type': "ERROR",
+                    'msg': "Something unexpected happened."
+                    }, client_sock)
+        finally:
+            addr = client_sock.getpeername()
+            print(f'Connection from {addr} closed')
+            client_sock.close()
+            database.connection.close()
+            session_id = request.get('session_id', '')
+            if session_id:
+                username = database.getUsername(session_id)
+                database.deleteSession(session_id)
+                self.deleteUser(username)
 
 
     def broadcastMessage(self, json_obj):

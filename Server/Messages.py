@@ -1,5 +1,3 @@
-#Needs to be modified
-
 class Messages:
     def __init__(self, server, database, client, request):
         self.server = server
@@ -9,29 +7,37 @@ class Messages:
 
     def handle(self):
         
-        if not self.validate(): return
+        if not self.validate(): 
+            return
 
-        target = self.request['TARGET']
-        message = self.request['MESSAGE']
-        
-        #Send message to target or broadcast
-        if target == 'BROADCAST':
-            self.server.broadcastMessage(message)
+        session_id = self.request['session_id']
+        sender_username = self.database.getUsername(session_id)
+        reciever = self.request['reciever']
+        message = self.request['message']
+       
+        message_obj = {
+                'type': 'MESSAGE',
+                'sender': sender_username,
+                'message': message
+            }
 
-        elif target in self.server.clients:
-            client_sock = self.server.clients[target]
-            self.server.sendToClient(message, client_sock)
+        #Send message to reciever or broadcast
+        if reciever == 'BROADCAST':
+            self.server.broadcastMessage(message_obj)
+
+        elif reciever in self.server.users:
+            reciever_sock = self.server.users[reciever][1]
+            self.server.sendToClient(message_obj, reciever_sock)
         else:
             self.server.sendToClient(self.server, {
                 'type': 'ERROR',
-                'msg': f'Invalid target: {target}',
+                'msg': f'no user: {reciever}',
             }, self.client)
 
 
     def validate(self):
-        pass
         #Check if required fields are present in request
-        required_fields = {'TARGET', 'MESSAGE', 'session_id'}
+        required_fields = {'reciever', 'message', 'session_id'}
 
         missing_fields = required_fields - set(self.request)
         if missing_fields:

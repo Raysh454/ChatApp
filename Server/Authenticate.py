@@ -1,5 +1,3 @@
-#Needs to be modified
-
 class Authenticate:
     def __init__(self, server, database, client, request):
         self.server = server
@@ -37,7 +35,7 @@ class Authenticate:
         self.server.addUser(username, session_id, self.client)
 
         self.server.sendToClient({
-            'type': 'AUTHENTICATION_SUCCESS',
+            'type': 'SUCCESS',
             'msg': 'Authentication successful',
             'session_id': session_id,
         }, self.client)
