@@ -1,6 +1,7 @@
 import socket
 import json
 import threading
+from PyQt6.QtCore import QObject, pyqtSignal
 
 class Client:
     def __init__(self, host, port):
@@ -10,7 +11,8 @@ class Client:
         self.username = ''
         self.session_id = ''
         self.connected = False
-        self.receive_thread = threading.Thread(target=self.recieveMessages, daemon=True)
+        self.receive_thread = threading.Thread(target=self.receiveMessages, daemon=True)
+        self.response_received = pyqtSignal(dict)
 
     def connect(self):
         try:
@@ -27,12 +29,16 @@ class Client:
             self.connected = False
             print("Disconnected from the server")
     
-    def sendMessage(self, message, reciever='BROADCAST'):
+    def sendMessage(self, message, receiver='BROADCAST'):
         if self.connected:
+            # need to impliment some sort of condition, if receiver != 'BROADCAST' then it means
+            # it's either a singular user (pm type communication) or a list of users (server/group chat
+            # type communication)
+            # possible implimentation: receiver can be a list, if has 1 name then pm else gc???
             message_obj = {
                 'type' : 'MESSAGE',
                 'session_id' : self.session_id,
-                'reciever' : reciever,
+                'receiver' : receiver,
                 'message' : message
             }
             self.sock.send(json.dumps(message_obj).encode('utf-8'))
@@ -63,7 +69,7 @@ class Client:
             }
             self.sock.send(json.dumps(logout_obj).encode('utf-8'))
     
-    def recieveMessages(self):
+    def receiveMessages(self):
         while self.connected:
             try:
                 data = self.sock.recv(1024).decode('utf-8')
@@ -74,10 +80,12 @@ class Client:
             except Exception as e:
                 print(f"Error while recieving messages.\n{e}")
                 break
+        self.disconnect()
     
     def handle_response(self, response):    
         # Temporary function, will change when gui is made.
         # Probably will be put in the gui itself
+        self.response_received.emit(response)
         if response['type'] == 'SUCCESS':
             if 'session_id' in response:
                 self.session_id = response['session_id']
