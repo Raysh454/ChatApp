@@ -20,6 +20,7 @@ class Client:
             self.connected = True
             self.receive_thread.start()
             print(f"Connection established to {self.host}:{self.port}")
+            self.authenticate('douwouw', 'Do0uw.com')
         except Exception as e:
             print(f"Error connecting to server:\n{e}")
 
@@ -31,7 +32,7 @@ class Client:
     
     def sendMessage(self, message, receiver='BROADCAST'):
         if self.connected:
-            # need to impliment some sort of condition, if receiver != 'BROADCAST' then it means
+            # need to implement some sort of condition, if receiver != 'BROADCAST' then it means
             # it's either a singular user (pm type communication) or a list of users (server/group chat
             # type communication)
             # possible implimentation: receiver can be a list, if has 1 name then pm else gc???
@@ -75,6 +76,7 @@ class Client:
                 data = self.sock.recv(1024).decode('utf-8')
                 if not data:
                     break
+                print(f"Recieved message {data}")
                 response = json.loads(data)
                 self.handle_response(response)
             except Exception as e:

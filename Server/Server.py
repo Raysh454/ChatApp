@@ -27,7 +27,8 @@ class Server:
 
     def start(self):
         while True:
-            client_sock, _ = self.sock.accept()
+            client_sock, addr = self.sock.accept()
+            print(f'Handling: {addr}')
             client_handler = threading.Thread(target=self.handle_client, args=(client_sock,))
             client_handler.start()
 
@@ -70,8 +71,6 @@ class Server:
                     'msg': "Something unexpected happened."
                     }, client_sock)
         finally:
-            addr = client_sock.getpeername()
-            print(f'Connection from {addr} closed')
             client_sock.close()
             session_id = request.get('session_id', '')
             if session_id:

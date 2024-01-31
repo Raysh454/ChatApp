@@ -10,15 +10,15 @@ myappid = u'mycompany.myproduct.subproduct.version' # stupid windows
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
 class chatApp(QMainWindow):
-    def __init__(self): # add host and port to init when done testing gui
+    def __init__(self, host, port): # add host and port to init when done testing gui
         super().__init__()
         
         self.setWindowTitle("Chat Application")
         self.setMinimumSize(QSize(720,480))
         self.setWindowIcon(QIcon('ChatApp/Icons/chat.png'))
 
-        #self.client = Client(host, port)
-        #self.client.connect()
+        self.client = Client(host, port)
+        self.client.connect()
 
         self.makeUI()
 
@@ -37,7 +37,7 @@ class chatApp(QMainWindow):
         layoutH.addWidget(sendButton)
         
 
-        #self.client.response_received.connect(self.handleResponse)
+        self.client.response_received.connect(self.handleResponse)
 
         layoutH.setSpacing(10)
         layoutH.setContentsMargins(0, 10, 0, 0)
@@ -68,6 +68,6 @@ class chatApp(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    window = chatApp()
+    window = chatApp('127.0.0.1', 8080)
     window.show()
     sys.exit(app.exec())
