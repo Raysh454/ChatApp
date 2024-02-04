@@ -18,30 +18,25 @@ class Database:
         self.connection.commit()
 
     def sessionIsValid(self, sessionID):
-        # Check if the sessionID is valid
         self.cursor.execute('SELECT * FROM users WHERE session_id = ?', (sessionID,))
         user = self.cursor.fetchone()
         return user is not None
 
-    def createUser(self, username, password):
-        # Insert the new user into the 'users' table using parameterized query
+    def createUser(self, username, password):   # Insert the new user into the 'users' table using parameterized query
         self.cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
         self.connection.commit()
 
-    def isAnUser(self, username):
-        # Check if the user already exists using parameterized query
+    def isAnUser(self, username):               # Check if the user already exists using parameterized query
         self.cursor.execute('SELECT * FROM users WHERE username = ?', (username,))
         user = self.cursor.fetchone()
         return user is not None
 
-    def loginIsValid(self, username, password): 
-        # Check the database for the username/password combination
+    def loginIsValid(self, username, password): # Check the database for the username/password combination
         self.cursor.execute('SELECT * FROM users WHERE username = ? AND password = ?', (username, password))
         user = self.cursor.fetchone()
         return user is not None
 
-    def deleteSession(self, sessionID):
-        # Delete a session associated with a user using parameterized query
+    def deleteSession(self, sessionID):         # Delete a session associated with a user using parameterized query
         if self.sessionIsValid(sessionID):
             self.cursor.execute('UPDATE users SET session_id = NULL WHERE session_id = ?', (sessionID,))
             self.connection.commit()
