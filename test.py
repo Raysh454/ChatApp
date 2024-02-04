@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import unittest
 import socket
 import json
@@ -99,9 +98,3 @@ if __name__ == '__main__':
 
     # Run the test suite
     unittest.TextTestRunner().run(suite)
-
-=======
-from Server import Server
-server = Server.Server('127.0.0.1', 8080)
-server.start()
->>>>>>> HuzPro-Changes
