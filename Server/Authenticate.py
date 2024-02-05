@@ -32,7 +32,6 @@ class Authenticate:
         
         # if it got to here it means Authentication was successful. Time to generate Sesh Id
         session_id = self.database.assignSession(username)
-        self.server.addUser(username, session_id, self.client)
 
         self.server.sendToClient({
             'type': 'SUCCESS',
@@ -40,3 +39,4 @@ class Authenticate:
             'session_id': session_id,
         }, self.client)
         
+        self.server.addUser(username, session_id, self.client)

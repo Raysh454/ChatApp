@@ -150,16 +150,17 @@ class chatApp(QMainWindow):
         self.stackedWidget.setCurrentIndex(2)  # Index of the register widget
 
     def handleLogin(self):
-        if self.loginUsernameField.text() == 'test' and self.loginPasswordField.text() == 'test123':
+        if self.client.authenticate(self.loginUsernameField.text(), self.loginPasswordField.text()):
+            self.client.receive_thread.start()  #Start receiving messages
             self.stackedWidget.setCurrentIndex(3)  # sends you to the chat UI
         else:
-            print("Login:", self.loginUsernameField.text(), self.loginPasswordField.text())
+            print("Login Failed:", self.loginUsernameField.text(), self.loginPasswordField.text())
 
     def handleRegister(self):
-        if self.registerUsernameField.text() == 'test' and self.registerPasswordField.text() == 'test123':
+        if self.client.register(self.registerUsernameField.text(), self.registerPasswordField.text()):
             self.stackedWidget.setCurrentIndex(0)  # sends you back to the shadow realm ; main menu
         else:
-            print("Register:", self.registerUsernameField.text(), self.registerPasswordField.text())
+            print("Registration Failed:", self.registerUsernameField.text(), self.registerPasswordField.text())
 
     def makeChatUI(self):
         layout = QVBoxLayout()
