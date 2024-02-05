@@ -3,11 +3,12 @@ from ..Client import Client
 from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QTextEdit, QLineEdit, QPushButton, QMainWindow, QHBoxLayout
 from PyQt6.QtCore import QSize, QTimer, Qt
 from PyQt6.QtGui import QIcon, QShortcut
-import ctypes
+import ctypes, platform
 
 # This code makes it so windows doesn't use Pythonw.exe's icon in taskbar
-myappid = u'mycompany.myproduct.subproduct.version' # stupid windows
-ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+if platform.system() == "Windows":
+    myappid = u'mycompany.myproduct.subproduct.version' # stupid windows
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
 class chatApp(QMainWindow):
     def __init__(self, host, port): # add host and port to init when done testing gui
