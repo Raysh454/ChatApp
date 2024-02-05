@@ -29,7 +29,7 @@ class Messages:
             reciever_sock = self.server.users[reciever][1]
             self.server.sendToClient(message_obj, reciever_sock)
         else:
-            self.server.sendToClient(self.server, {
+            self.server.sendToClient({
                 'type': 'ERROR',
                 'msg': f'no user: {reciever}',
             }, self.client)
