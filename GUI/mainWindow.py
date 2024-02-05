@@ -17,7 +17,7 @@ class chatApp(QMainWindow):
         self.setMinimumSize(QSize(720,480))
         self.setWindowIcon(QIcon('ChatApp/Icons/chat.png'))
 
-        self.client = Client(host, port)
+        self.client = Client.Client(host, port)
         self.client.connect()
 
         self.makeUI()
@@ -37,7 +37,7 @@ class chatApp(QMainWindow):
         layoutH.addWidget(sendButton)
         
 
-        self.client.response_received.connect(self.handleResponse)
+        self.client.response_received.connect(self.handle_response)
 
         layoutH.setSpacing(10)
         layoutH.setContentsMargins(0, 10, 0, 0)
@@ -68,6 +68,6 @@ class chatApp(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    window = chatApp('127.0.0.1', 8080)
+    window = chatApp('127.0.0.1', 9999)
     window.show()
     sys.exit(app.exec())
