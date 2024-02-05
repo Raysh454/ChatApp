@@ -198,7 +198,7 @@ class chatApp(QMainWindow):
     def sendMessage(self):
         message = self.inputBox.text()
         self.inputBox.clear()
-        self.client.sendMessage(message) # not finished!!!!! check sendMessage() in Client.py for more info
+        self.client.sendMessage(message)
         self.messageDisplay.append(str(self.client.username) + ": " + str(message))
     
     def handle_response(self, response):
