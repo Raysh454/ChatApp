@@ -17,13 +17,14 @@ class Client(QObject):
         self.receive_thread = threading.Thread(target=self.receiveMessages, daemon=True)
         
 
-    def connect(self):
+    def connect(self, username = 'douwouw', password = 'Do0uw.com'):
         try:
             self.sock.connect((self.host, self.port))
             self.connected = True
             self.receive_thread.start()
             print(f"Connection established to {self.host}:{self.port}")
-            self.authenticate('douwouw', 'Do0uw.com')
+            self.authenticate(username, password)
+            
         except Exception as e:
             print(f"Error connecting to server:\n{e}")
 
