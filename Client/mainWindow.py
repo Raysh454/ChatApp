@@ -209,6 +209,7 @@ class chatApp(QMainWindow):
             message = response['message']
             self.messageDisplay.append(str(sender) + ": " + str(message))
 
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = chatApp('127.0.0.1', 9999)
