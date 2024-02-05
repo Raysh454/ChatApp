@@ -3,8 +3,11 @@ import json
 import threading
 from PyQt6.QtCore import QObject, pyqtSignal
 
-class Client:
+class Client(QObject):
+    response_received = pyqtSignal(dict)
+
     def __init__(self, host, port):
+        super().__init__()
         self.host = host
         self.port = port
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -12,7 +15,7 @@ class Client:
         self.session_id = ''
         self.connected = False
         self.receive_thread = threading.Thread(target=self.receiveMessages, daemon=True)
-        self.response_received = pyqtSignal(dict)
+        
 
     def connect(self):
         try:
