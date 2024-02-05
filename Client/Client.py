@@ -50,7 +50,7 @@ class Client(QObject):
                 'password' : password
             }
             self.sock.send(json.dumps(authentication_obj).encode('utf-8'))
-            response = self.receiveMessages(True)
+            response = self.receiveMessages(True, 105)
             
             if response and response.get('session_id', ''):
                 self.session_id = response['session_id']
@@ -81,10 +81,10 @@ class Client(QObject):
             self.sock.send(json.dumps(logout_obj).encode('utf-8'))
 
     
-    def receiveMessages(self, runOnce=False):
+    def receiveMessages(self, runOnce=False, size=1024):
         while self.connected or runOnce:
             try:
-                data = self.sock.recv(1024).decode('utf-8')
+                data = self.sock.recv(size).decode('utf-8')
                 if not data:
                     break
                 print(f"Recieved message {data}")
