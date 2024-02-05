@@ -77,3 +77,13 @@
     "msg": "Unknown request type"
 }
 ```
+
+### User list
+```json
+{
+    "type": "USER_LIST",
+    "users": {
+        "Username": 0
+    },
+}
+```
