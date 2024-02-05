@@ -1,6 +1,7 @@
 import socket
 import threading
 import json
+import traceback
 
 from . import Database
 from . import Register
@@ -14,6 +15,7 @@ class Server:
         self.port = port
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.users = {}
+        self.usernames = {}
         self.lock = threading.Lock()
        
         try:
@@ -64,6 +66,7 @@ class Server:
                 handler.handle()
 
         except Exception as e:
+            traceback.print_exc()
             print(f'Error: {e}')
             if self.socketIsValid(client_sock):
                 self.sendToClient({
@@ -80,14 +83,16 @@ class Server:
             database.connection.close()
 
 
-    def broadcastMessage(self, json_obj):
-        for _, socket in self.users:
-            self.sendToClient(json_obj, socket)
+    def broadcastMessage(self, json_obj, exclude=[]):
+        for username, (_, socket) in self.users.items():
+            if username not in exclude:
+                self.sendToClient(json_obj, socket)
             
 
     def sendToClient(self, json_obj, client):
-        json_string = json.dumps(json_obj)
-        client.send(json_string.encode('utf-8'))
+        if self.socketIsValid(client):
+            json_string = json.dumps(json_obj)
+            client.send(json_string.encode('utf-8'))
 
     def socketIsValid(self, sock):
         try:
@@ -100,8 +105,16 @@ class Server:
     def addUser(self, username, session_id, sock):
         with self.lock:
             self.users[username] = (session_id, sock)
+            self.usernames[username] = 0
+            self.broadcastMessage({ 'type': 'USER_LIST',
+                                    'users': self.usernames
+                               })
     
     def deleteUser(self, username):
         if username in self.users:
             with self.lock:
                 del self.users[username]
+                del self.usernames[username]
+        self.broadcastMessage({ 'type': 'USER_LIST',
+                                'users': self.usernames
+                               })

@@ -12,7 +12,7 @@ class Messages:
 
         session_id = self.request['session_id']
         sender_username = self.database.getUsername(session_id)
-        reciever = self.request['reciever']
+        receiver = self.request['receiver']
         message = self.request['message']
        
         message_obj = {
@@ -21,23 +21,23 @@ class Messages:
                 'message': message
             }
 
-        #Send message to reciever or broadcast
-        if reciever == 'BROADCAST':
-            self.server.broadcastMessage(message_obj)
+        #Send message to receiver or broadcast
+        if receiver == 'BROADCAST':
+            self.server.broadcastMessage(message_obj, [sender_username])
 
-        elif reciever in self.server.users:
-            reciever_sock = self.server.users[reciever][1]
-            self.server.sendToClient(message_obj, reciever_sock)
+        elif receiver in self.server.users:
+            receiver_sock = self.server.users[receiver][1]
+            self.server.sendToClient(message_obj, receiver_sock)
         else:
             self.server.sendToClient({
                 'type': 'ERROR',
-                'msg': f'no user: {reciever}',
+                'msg': f'no user: {receiver}',
             }, self.client)
 
 
     def validate(self):
         #Check if required fields are present in request
-        required_fields = {'reciever', 'message', 'session_id'}
+        required_fields = {'receiver', 'message', 'session_id'}
 
         missing_fields = required_fields - set(self.request)
         if missing_fields:
