@@ -1,5 +1,5 @@
 import sys
-from ..Client import Client
+from . import Client
 from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QTextEdit, QLineEdit, QPushButton, QMainWindow, QHBoxLayout, QStackedWidget, QLabel
 from PyQt6.QtCore import QSize, QTimer, Qt
 from PyQt6.QtGui import QIcon, QShortcut
@@ -202,6 +202,8 @@ class chatApp(QMainWindow):
         self.messageDisplay.append(str(self.client.username) + ": " + str(message))
     
     def handle_response(self, response):
+        if response['type'] == 'USER_LIST':
+            pass
         if response['type'] == 'MESSAGE':
             sender = response['sender']
             message = response['message']
