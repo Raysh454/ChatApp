@@ -44,7 +44,10 @@ class Messages:
             error_message = f'Missing required fields: {", ".join(missing_fields)}'
             self.server.sendToClient({'type': 'ERROR', 'msg': error_message}, self.client)
             return False
-        
+       
+        if not self.request['message']:
+            self.server.sendToClient({'type': 'ERROR', 'msg': "message body can't be empty"}, self.client)
+
         #Check if session_id is valid
         session_id = self.request['session_id']
         if session_id is None or not self.database.sessionIsValid(session_id):

@@ -6,11 +6,10 @@ from PyQt6.QtCore import QObject, pyqtSignal
 class Client(QObject):
     response_received = pyqtSignal(dict)
 
-    def __init__(self, host, port):
+    def __init__(self):
         super().__init__()
-        self.host = host
-        self.port = port
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.host = ''
+        self.port = 0
         self.username = ''
         self.session_id = ''
         self.connected = False
@@ -19,14 +18,17 @@ class Client(QObject):
 
     def connect(self):
         try:
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.sock.connect((self.host, self.port))
             self.connected = True
             print(f"Connection established to {self.host}:{self.port}")
+            return True
             
         except Exception as e:
             print(f"Error connecting to server:\n{e}")
+            return False
 
-    def disconnect(self):
+    def disconnectSock(self):
         if self.connected:
             self.sock.close()
             self.connected = False
@@ -56,8 +58,10 @@ class Client(QObject):
                 self.session_id = response['session_id']
                 self.username = username
                 self.password = password
-                return True
-            return False
+                return (True, response.get('msg', ''))
+            if response:
+                return (False, response.get('msg', ''))
+        return(False, 'Server unreachable')
     
     def register(self, username, password):
         if self.connected:
@@ -69,8 +73,10 @@ class Client(QObject):
             self.sock.send(json.dumps(registration_obj).encode('utf-8'))
             response = self.receiveMessages(True)
             if response and response.get('type', '') == 'SUCCESS':
-                return True
-            return False
+                return (True, response.get('msg', ''))
+            if response:
+                return (False, response.get('msg', ''))
+        return (False, 'Server unreachabe')
     
     def logout(self):
         if self.connected and self.session_id:
@@ -102,5 +108,5 @@ class Client(QObject):
                 self.response_received.emit(response)
             except Exception as e:
                 print(f"Error while recieving messages.\n{e}")
+                self.disconnect()
                 break
-        self.disconnect()

@@ -63,4 +63,4 @@ class Database:
     def getUsername(self, session_id):
         self.cursor.execute('SELECT username FROM users where session_id = ?', (session_id,))
         username = self.cursor.fetchone()
-        return username[0]
+        if username: return username[0]

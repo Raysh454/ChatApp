@@ -78,7 +78,7 @@
 }
 ```
 
-### User list
+#### User list
 ```json
 {
     "type": "USER_LIST",

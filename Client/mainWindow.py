@@ -2,8 +2,8 @@ import sys
 from .Client import Client
 from .UserList import UserList
 from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QTextEdit, QLineEdit, QPushButton, QMainWindow, QHBoxLayout, QStackedWidget, QLabel
-from PyQt6.QtCore import QSize, QTimer, Qt
-from PyQt6.QtGui import QIcon, QShortcut, QTextCharFormat, QColor, QTextCursor
+from PyQt6.QtCore import QSize, QTimer, Qt, QRegularExpression
+from PyQt6.QtGui import QIcon, QShortcut, QTextCharFormat, QColor, QTextCursor, QRegularExpressionValidator
 import platform
 
 # This code makes it so windows doesn't use Pythonw.exe's icon in taskbar
@@ -13,25 +13,86 @@ if platform.system() == "Windows":
     windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
 class chatApp(QMainWindow):
-    def __init__(self, host, port):
+    def __init__(self):
         super().__init__()
 
         self.setWindowTitle("Chat Application")
         self.setMinimumSize(QSize(300, 400))
         self.setWindowIcon(QIcon('ChatApp/Icons/chat.png'))
 
-        self.client = Client(host, port)
-        self.client.connect()
-
         self.userList = UserList()
+        self.client = Client()
 
         self.stackedWidget = QStackedWidget(self)
+        self.makeConnectUI()
         self.makeMenuUI()
         self.makeLoginUI()
         self.makeRegisterUI()
         self.makeChatUI()
 
         self.setCentralWidget(self.stackedWidget)
+
+
+
+    def makeConnectUI(self):
+        layout = QVBoxLayout()
+
+        def checkAddressValidity():
+            ip_valid = self.serverIPField.hasAcceptableInput()
+            port_valid = self.serverPortField.hasAcceptableInput()
+
+            # Enable the button only if both fields are valid
+            self.connectButton.setEnabled(ip_valid and port_valid)
+        
+        # IP
+        serverIPLayout = QHBoxLayout()
+        serverIPText = QLabel("Server IP:   ")
+        serverIPText.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        self.serverIPField = QLineEdit(self)
+        self.serverIPField.setValidator(QRegularExpressionValidator(QRegularExpression(r'\b(?:\d{1,3}\.){3}\d{1,3}\b')))
+        self.serverIPField.textChanged.connect(checkAddressValidity)
+        serverIPLayout.addWidget(serverIPText)
+        serverIPLayout.addWidget(self.serverIPField)
+        layout.addLayout(serverIPLayout)
+
+        # Add some spacing
+        layout.addSpacing(10)
+
+        # Port
+        serverPortLayout = QHBoxLayout()
+        serverPortText = QLabel("Server Port:")
+        serverPortText.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        serverPortLayout.addWidget(serverPortText)
+
+        self.serverPortField = QLineEdit(self)
+        self.serverPortField.setValidator(QRegularExpressionValidator(QRegularExpression(r'\d+')))
+        self.serverPortField.textChanged.connect(checkAddressValidity)
+        serverPortLayout.addWidget(self.serverPortField)
+        layout.addLayout(serverPortLayout)
+
+        # Add some spacing
+        layout.addSpacing(10)
+
+        # Error message label (initially hidden)
+        self.connectErrorMessageLabel = QLabel("", self)
+        self.connectErrorMessageLabel.setStyleSheet("color: red")  # Set text color to red
+        self.connectErrorMessageLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.connectErrorMessageLabel)
+
+
+        self.connectButton = QPushButton("Connect", self)
+        self.connectButton.clicked.connect(self.handleConnect)
+        self.connectButton.setEnabled(False)
+        layout.addWidget(self.connectButton)
+
+        # Center the widgets horizontally and vertically
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        menuWidget = QWidget()
+        menuWidget.setLayout(layout)
+        self.stackedWidget.addWidget(menuWidget)
+
+
 
     def makeMenuUI(self):
         layout = QVBoxLayout()
@@ -42,6 +103,10 @@ class chatApp(QMainWindow):
         self.registerMenuButton = QPushButton("Register", self)
         self.registerMenuButton.clicked.connect(self.showRegisterUI)
         layout.addWidget(self.registerMenuButton)
+
+        self.connectMenuButton = QPushButton("Change Server", self)
+        self.connectMenuButton.clicked.connect(self.showConnectUI)
+        layout.addWidget(self.connectMenuButton)
 
         # Center the widgets horizontally and vertically
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -67,7 +132,7 @@ class chatApp(QMainWindow):
 
         # Password
         passwordLayout = QHBoxLayout()
-        passwordText = QLabel("Password:")
+        passwordText = QLabel("Password:  ")
         passwordText.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         passwordLayout.addWidget(passwordText)
 
@@ -79,14 +144,26 @@ class chatApp(QMainWindow):
         # Add some spacing
         layout.addSpacing(10)
 
+        # Error message label (initially hidden)
+        self.loginErrorMessageLabel = QLabel("", self)
+        self.loginErrorMessageLabel.setStyleSheet("color: red")  # Set text color to red
+        self.loginErrorMessageLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.loginErrorMessageLabel)
+
         # Login Button
         self.loginButton = QPushButton("Login", self)
         self.loginButton.clicked.connect(self.handleLogin)
+
+        #Menu Button
+        menuButton = QPushButton("Menu", self)
+        menuButton.clicked.connect(self.showMenuUI)
+
 
         # Center the login button horizontally
         buttonLayout = QHBoxLayout()
         buttonLayout.addStretch(1)
         buttonLayout.addWidget(self.loginButton)
+        buttonLayout.addWidget(menuButton)
         buttonLayout.addStretch(1)
         layout.addLayout(buttonLayout)
 
@@ -127,14 +204,31 @@ class chatApp(QMainWindow):
         # Add some spacing
         layout.addSpacing(10)
 
+        # Error message label (initially hidden)
+        self.registerErrorMessageLabel = QLabel("", self)
+        self.registerErrorMessageLabel.setStyleSheet("color: red")  # Set text color to red
+        self.registerErrorMessageLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.registerErrorMessageLabel)
+
+        # Success message label (initially hidden)
+        self.registerSuccessMessageLabel = QLabel("", self)
+        self.registerSuccessMessageLabel.setStyleSheet("color: green")  # Set text color to green
+        self.registerSuccessMessageLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.registerSuccessMessageLabel)
+
         # Register Button
         self.registerButton = QPushButton("Register", self)
         self.registerButton.clicked.connect(self.handleRegister)
+
+        #Menu Button
+        menuButton = QPushButton("Menu", self)
+        menuButton.clicked.connect(self.showMenuUI)
 
         # Center the register button horizontally
         buttonLayout = QHBoxLayout()
         buttonLayout.addStretch(1)
         buttonLayout.addWidget(self.registerButton)
+        buttonLayout.addWidget(menuButton)
         buttonLayout.addStretch(1)
         layout.addLayout(buttonLayout)
 
@@ -146,24 +240,49 @@ class chatApp(QMainWindow):
         registerWidget.setLayout(layout)
         self.stackedWidget.addWidget(registerWidget)
 
+    def showConnectUI(self):
+        self.client.disconnectSock()
+        self.connectErrorMessageLabel.setText('')
+        self.stackedWidget.setCurrentIndex(0)  #Connection Menu
+
+    def showMenuUI(self):
+        self.stackedWidget.setCurrentIndex(1)  #Login/Registration Menu
+
     def showLoginUI(self):
-        self.stackedWidget.setCurrentIndex(1)  # Index of the login widget
+        self.loginPasswordField.setText('')
+        self.loginErrorMessageLabel.setText('')
+        self.stackedWidget.setCurrentIndex(2)  # Index of the login widget
 
     def showRegisterUI(self):
-        self.stackedWidget.setCurrentIndex(2)  # Index of the register widget
+        self.registerUsernameField.setText('')
+        self.registerPasswordField.setText('')
+        self.registerSuccessMessageLabel.setText('')
+        self.registerErrorMessageLabel.setText('')
+        self.stackedWidget.setCurrentIndex(3)  # Index of the register widget
 
     def handleLogin(self):
-        if self.client.authenticate(self.loginUsernameField.text(), self.loginPasswordField.text()):
+        isLoggedIn, msg = self.client.authenticate(self.loginUsernameField.text(), self.loginPasswordField.text())
+        if isLoggedIn:
             self.client.receive_thread.start()  #Start receiving messages
-            self.stackedWidget.setCurrentIndex(3)  # sends you to the chat UI
+            self.stackedWidget.setCurrentIndex(4)  # sends you to the chat UI
         else:
-            print("Login Failed:", self.loginUsernameField.text(), self.loginPasswordField.text())
+            self.loginErrorMessageLabel.setText(f"Login Failed: {msg}")
 
     def handleRegister(self):
-        if self.client.register(self.registerUsernameField.text(), self.registerPasswordField.text()):
-            self.stackedWidget.setCurrentIndex(0)  # sends you back to the shadow realm ; main menu
+        isRegistered, msg = self.client.register(self.registerUsernameField.text(), self.registerPasswordField.text())
+        if isRegistered:
+            self.registerErrorMessageLabel.setText("")
+            self.registerSuccessMessageLabel.setText(f"Registered Successfuly: {msg}") 
         else:
-            print("Registration Failed:", self.registerUsernameField.text(), self.registerPasswordField.text())
+            self.registerErrorMessageLabel.setText(f"Registration Failed: {msg}")
+
+    def handleConnect(self):
+        self.client.host = str(self.serverIPField.text())
+        self.client.port = int(self.serverPortField.text())
+        if self.client.connect():
+            self.stackedWidget.setCurrentIndex(1)
+        else:
+            self.connectErrorMessageLabel.setText(f"Failed to connect to: {self.serverIPField.text()}:{self.serverPortField.text()}")
 
     def makeChatUI(self):
         layout = QVBoxLayout()
@@ -178,8 +297,9 @@ class chatApp(QMainWindow):
         sendButton = QPushButton('Send', self)
         sendButton.clicked.connect(self.sendMessage)
         layoutH.addWidget(sendButton)
-        
-        self.client.response_received.connect(self.handle_response)
+
+        if self.client:
+            self.client.response_received.connect(self.handle_response)
 
         layoutH.setSpacing(10)
         layoutH.setContentsMargins(0, 10, 0, 0)
@@ -200,6 +320,7 @@ class chatApp(QMainWindow):
 
     def sendMessage(self):
         message = self.inputBox.text()
+        if not message: return  #Avoid sending empty message
         self.inputBox.clear()
         self.client.sendMessage(message)
         self.appendColoredMessage(self.client.username, message, "blue")
@@ -248,7 +369,7 @@ class chatApp(QMainWindow):
 
             print("Updated User List:", self.userList.returnList())
         
-        if response['type'] == 'MESSAGE':
+        elif response['type'] == 'MESSAGE':
             sender = response['sender']
             message = response['message']
 
@@ -260,6 +381,6 @@ class chatApp(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    window = chatApp('127.0.0.1', 9999)
+    window = chatApp()
     window.show()
     sys.exit(app.exec())
