@@ -1,8 +1,9 @@
 import sys
-from . import Client
+from .Client import Client
+from .UserList import UserList
 from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QTextEdit, QLineEdit, QPushButton, QMainWindow, QHBoxLayout, QStackedWidget, QLabel
 from PyQt6.QtCore import QSize, QTimer, Qt
-from PyQt6.QtGui import QIcon, QShortcut
+from PyQt6.QtGui import QIcon, QShortcut, QTextCharFormat, QColor, QTextCursor
 import platform
 
 # This code makes it so windows doesn't use Pythonw.exe's icon in taskbar
@@ -19,8 +20,10 @@ class chatApp(QMainWindow):
         self.setMinimumSize(QSize(300, 400))
         self.setWindowIcon(QIcon('ChatApp/Icons/chat.png'))
 
-        self.client = Client.Client(host, port)
+        self.client = Client(host, port)
         self.client.connect()
+
+        self.userList = UserList()
 
         self.stackedWidget = QStackedWidget(self)
         self.makeMenuUI()
@@ -199,15 +202,60 @@ class chatApp(QMainWindow):
         message = self.inputBox.text()
         self.inputBox.clear()
         self.client.sendMessage(message)
-        self.messageDisplay.append(str(self.client.username) + ": " + str(message))
+        self.appendColoredMessage(self.client.username, message, "blue")
+    
+    def appendColoredMessage(self, username, message, color):
+        cursor = self.messageDisplay.textCursor()
+        if username != '':
+            # Set the color for the username
+            username_format = QTextCharFormat()
+            username_format.setForeground(QColor(color))
+            cursor.insertText(f"{username}: ", username_format)
+
+            # Set the color for the message
+            message_format = QTextCharFormat()
+            message_format.setForeground(QColor("black"))
+            cursor.insertText(f"{message}\n", message_format)
+
+            # Move the cursor to the end to show the new message
+            cursor.movePosition(QTextCursor.MoveOperation.End)
+            self.messageDisplay.setTextCursor(cursor)
+            self.messageDisplay.ensureCursorVisible()
+        else:
+            message_format = QTextCharFormat()
+            message_format.setForeground(QColor("black"))
+            cursor.insertText(f"{message}\n", message_format)
+
+            cursor.movePosition(QTextCursor.MoveOperation.End)
+            self.messageDisplay.setTextCursor(cursor)
+            self.messageDisplay.ensureCursorVisible()
     
     def handle_response(self, response):
         if response['type'] == 'USER_LIST':
-            pass
+            updated_users = list(response['users'].keys())
+            changes = self.userList.whatChanged(updated_users)
+
+            if changes['op'] == 'add':
+                self.userList.add(changes['names'])
+                print(f"User {changes['names']} joined the server.")
+                #self.messageDisplay.append(f"User {changes['names']} joined the server.")
+                self.appendColoredMessage('', f"User {changes['names']} joined the server.", 'black')
+            elif changes['op'] == 'rem':
+                self.userList.rem(changes['names'])
+                print(f"User {changes['names']} left the server.")
+                #self.messageDisplay.append(f"User {changes['names']} left the server.")
+                self.appendColoredMessage('', f"User {changes['names']} left the server.", 'black')
+
+            print("Updated User List:", self.userList.returnList())
+        
         if response['type'] == 'MESSAGE':
             sender = response['sender']
             message = response['message']
-            self.messageDisplay.append(str(sender) + ": " + str(message))
+
+            if sender != self.client.username:
+                self.appendColoredMessage(sender, message, "green")
+            else:
+                self.appendColoredMessage(sender, message, "blue")
 
 
 if __name__ == '__main__':
