@@ -355,19 +355,20 @@ class chatApp(QMainWindow):
         if response['type'] == 'USER_LIST':
             updated_users = list(response['users'].keys())
             changes = self.userList.whatChanged(updated_users)
-
+            
+            if not changes:
+                return
             if changes['op'] == 'add':
-                self.userList.add(changes['names'])
-                print(f"User {changes['names']} joined the server.")
-                #self.messageDisplay.append(f"User {changes['names']} joined the server.")
-                self.appendColoredMessage('', f"User {changes['names']} joined the server.", 'black')
+                self.userList.addList(changes['names'])
+                for name in changes['names']:
+                    print(f"User {name} joined the server.")
+                    self.appendColoredMessage('', f"User {name} joined the server.", 'black')
             elif changes['op'] == 'rem':
-                self.userList.rem(changes['names'])
-                print(f"User {changes['names']} left the server.")
-                #self.messageDisplay.append(f"User {changes['names']} left the server.")
-                self.appendColoredMessage('', f"User {changes['names']} left the server.", 'black')
+                self.userList.removeList(changes['names'])
+                for name in changes['names']:
+                    print(f"User {name} left the server.")
+                    self.appendColoredMessage('', f"User {name} left the server.", 'black')
 
-            print("Updated User List:", self.userList.returnList())
         
         elif response['type'] == 'MESSAGE':
             sender = response['sender']
