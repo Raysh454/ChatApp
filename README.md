@@ -97,7 +97,3 @@ pip install -r requirements.txt
 ## Contributing
 
 Pull requests are welcome! Please open an issue first to discuss your proposed changes.
-
-## License
-
-[MIT License](LICENSE) — see the repo for details.
